@@ -1,23 +1,26 @@
 #include <iostream>
-using namespace std;
+using std::cin;
+using std::cout;
+using std::endl;
 
 #define tab "\t"
 
-int** Allocate(const int rows, const int cols);
-void Clear(int**& arr, const int rows, const int cols = 0);
+template<typename T>T** Allocate(const int rows, const int cols);
+template<typename T>void Clear(T**& arr, const int rows, const int cols = 0);
 
 void FillRand(int arr[], const int n, int minRand = 0, int maxRand = 100);
+void FillRand(double arr[], const int n, int minRand = 0, int maxRand = 100);
 void FillRand(int** arr, const int rows, const int cols, int minRand = 0, int maxRand = 100);
-void Print(int arr[], const int n);
-void Print(int** arr, const int rows, const int cols);
+template<typename T> void Print(T arr[], const int n);
+template<typename T> void Print(T** arr, const int rows, const int cols);
 
-int** push_row_back(int** arr, int& rows, const int cols);
-int** insert_row(int** arr, int& rows, const int cols, const int index);
+template<typename T>T** push_row_back(T** arr, int& rows, const int cols);
+template<typename T>T** insert_row(T** arr, int& rows, const int cols, const int index);
 
-void push_col_back(int** arr, const int rows, int& cols);
+template<typename T>void push_col_back(T** arr, const int rows, int& cols);
 
-//#define DYNAMIC_MEMEORY_1
-#define DYNAMIC_MEMEORY_2
+#define DYNAMIC_MEMORY_1
+//#define DYNAMIC_MEMORY_2
 
 void main()
 {
@@ -34,11 +37,13 @@ void main()
 	delete[] arr;
 #endif // DYNAMIC_MEMORY_1
 
+
+#ifdef DYNAMIC_MEMORY_2
 	int rows;
 	int cols;
 	cout << "Введите количество строк: "; cin >> rows;
 	cout << "Введите количество элементов строки: "; cin >> cols;
-	
+
 	int** arr = Allocate(rows, cols);
 
 	FillRand(arr, rows, cols);
@@ -58,20 +63,22 @@ void main()
 	Print(arr, rows, cols);
 
 	Clear(arr, rows, cols);
+#endif // DYNAMIC_MEMORY_2
+
 }
-int** Allocate(const int rows, const int cols)
+template<typename T>T** Allocate(const int rows, const int cols)
 {
 	//1) Создаём массив указателей:
-	int** arr = new int* [rows];
+	T** arr = new T* [rows];
 
 	//2) Выделяем память под строки:
 	for (int i = 0; i < rows; i++)
 	{
-		arr[i] = new int[cols];
+		arr[i] = new T[cols];
 	}
 	return arr;
 }
-void Clear(int**& arr, const int rows, const int cols)
+template<typename T>void Clear(T**& arr, const int rows, const int cols)
 {
 	//1) Сначала удаляются строки двумерного массива:
 
@@ -86,6 +93,23 @@ void Clear(int**& arr, const int rows, const int cols)
 	
 	arr = nullptr;
 }
+void FillRand(int arr[], const int n, int minRand, int maxRand)
+{
+	for (int i = 0; i < n; i++)
+	{
+		*(arr + i) = rand() % (maxRand - minRand) + minRand; // через арифметику указателей и оператор разыменования
+	}
+}
+void FillRand(double arr[], const int n, int minRand, int maxRand)
+{
+	minRand *= 100;
+	maxRand *= 100;
+	for (int i = 0; i < n; i++)
+	{
+		*(arr + i) = rand() % (maxRand - minRand) + minRand; // через арифметику указателей и оператор разыменования
+		arr[i] /= 100;
+	}
+}
 void FillRand(int** arr, const int rows, const int cols, int minRand, int maxRand)
 {
 	for (int i = 0; i < rows; i++)
@@ -96,14 +120,16 @@ void FillRand(int** arr, const int rows, const int cols, int minRand, int maxRan
 		}
 	}
 }
-void FillRand(int arr[], const int n, int minRand, int maxRand)
+template<typename T> void Print(T arr[], const int n)
 {
+	cout << arr << endl;
+	cout << *arr << endl;
 	for (int i = 0; i < n; i++)
 	{
-		*(arr + i) = rand() % (maxRand - minRand) + minRand; // через арифметику указателей и оператор разыменования
+		cout << arr[i] << "\t"; // через опертаор индексирования (Subscript operator)
 	}
 }
-void Print(int** arr, const int rows, const int cols)
+template<typename T> void Print(T** arr, const int rows, const int cols)
 {
 	for (int i = 0; i < rows; i++)
 	{
@@ -115,19 +141,10 @@ void Print(int** arr, const int rows, const int cols)
 	}
 	cout << endl;
 }
-void Print(int arr[], const int n)
-{
-	cout << arr << endl;
-	cout << *arr << endl;
-	for (int i = 0; i < n; i++)
-	{
-		cout << arr[i] << "\t"; // через опертаор индексирования (Subscript operator)
-	}
-}
-int** push_row_back(int** arr, int& rows, const int cols)
+template<typename T>T** push_row_back(T** arr, int& rows, const int cols)
 {
 	//1) Создаём буферный массив указателей нужного размера:
-	int** buffer = new int* [rows + 1];
+	T** buffer = new T* [rows + 1];
 
 	//2) Копируем адреса строк в новый массив:
 	for (int i = 0; i < rows; i++)
@@ -139,7 +156,7 @@ int** push_row_back(int** arr, int& rows, const int cols)
 	delete[] arr;
 
 	//4) Добавляем добавляемую строку:
-	buffer[rows] = new int[cols] {};
+	buffer[rows] = new T[cols] {};
 
 	//5) После добавления строки, количество строк увел. на 1:
 	rows++;
@@ -147,14 +164,14 @@ int** push_row_back(int** arr, int& rows, const int cols)
 	//6)) Возвращаем новый массив:
 	return buffer;
 }
-int** insert_row(int** arr, int& rows, const int cols, const int index)
+template<typename T>T** insert_row(T** arr, int& rows, const int cols, const int index)
 {
 	if (index < 0 || index > rows)
 	{
 		cout << "Error: Out of range exception" << endl;
 		return arr;
 	}
-	int** buffer = new int* [rows + 1] {};
+	T** buffer = new T* [rows + 1] {};
 	//for (int i = 0; i < index; i++)buffer[i] = arr[i];
 	//for (int i = index; i < rows; i++)buffer[i + 1] = arr[i];
 	for (int i = 0; i < rows; i++)
@@ -165,16 +182,16 @@ int** insert_row(int** arr, int& rows, const int cols, const int index)
 		buffer[i < index ? i : i + 1] = arr[i];
 	}
 	delete[] arr;
-	buffer[index] = new int[cols] {};
+	buffer[index] = new T[cols] {};
 	rows++;
 	return buffer;
 }
-void push_col_back(int** arr, const int rows, int& cols)
+template<typename T> void push_col_back(T** arr, const int rows, int& cols)
 {
 	for (int i = 0; i < rows; i++)
 	{
 		//1) Создаём буферную строку нужного размера: 
-		int* buffer = new int[cols + 1] {};
+		T* buffer = new T[cols + 1] {};
 		//2) Копируем элементы из исходной строки в буферную:
 		for (int j = 0; j < cols; j++)buffer[j] = arr[i][j];
 		//3) Удаляем исходную строку:
